@@ -23,12 +23,12 @@ stages:
         steps:
           - checkout: self  # ✅ Pulls code from the repo
 
-          - task: UseTerraform@1
+          - task: TerraformInstaller@0
             displayName: 'Install Terraform'
             inputs:
               terraformVersion: '$(terraformVersion)'
 
-          - task: TerraformTaskV4@4
+          - task: TerraformCLI@0
             displayName: 'Terraform Init'
             inputs:
               provider: 'azurerm'
@@ -40,14 +40,14 @@ stages:
               backendAzureRmContainerName: '$(backendContainerName)'
               backendAzureRmKey: '$(backendKey)'
 
-          - task: TerraformTaskV4@4
+          - task: TerraformCLI@0
             displayName: 'Terraform Validate'
             inputs:
               provider: 'azurerm'
               command: 'validate'
               workingDirectory: '$(workingDirectory)'
 
-          - task: TerraformTaskV4@4
+          - task: TerraformCLI@0
             displayName: 'Terraform Plan'
             inputs:
               provider: 'azurerm'
@@ -73,12 +73,12 @@ stages:
         steps:
           - checkout: self
 
-          - task: UseTerraform@1
+          - task: TerraformInstaller@0
             displayName: 'Install Terraform'
             inputs:
               terraformVersion: '$(terraformVersion)'
 
-          - task: TerraformTaskV4@4
+          - task: TerraformCLI@0
             displayName: 'Terraform Apply'
             inputs:
               provider: 'azurerm'
