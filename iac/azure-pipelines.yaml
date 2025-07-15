@@ -2,17 +2,94 @@ trigger:
   branches:
     include:
       - dev
-pool: ubuntu-latest
+
 variables:
-  TF_VERSION: '1.6.6'
-  AZURE_SERVICE_CONNECTION: 'azureSPN-terrafom'
+  terraformVersion: '1.6.6'
+  azureServiceConnection: 'azureSC-terrafom'  # 👈 Replace this with your actual service connection name
+  backendResourceGroup: 'rg-pp-001'
+  backendStorageAccount: 'ppplatformstorageaccount'
+  backendContainerName: 'dev-tfstate'
+  backendKey: 'dev.terraform.tfstate'
+  environment: 'dev'
+  workingDirectory: 'iac/azure/env/dev'  # 👈 Your Terraform code path
 
 stages:
-  - stage: Terraform
+  - stage: Terraform_Validate_Plan
+    displayName: "Terraform Init, Validate, and Plan"
     jobs:
-    - job: deploy
-      steps:
-      - task: UseTerraform@0
-        inputs:
-          terraformVersion: '$(TF_VERSION)'
-      
+      - job: TerraformPlan
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self  # ✅ Pulls code from the repo
+
+          - task: UseTerraform@1
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: '$(terraformVersion)'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Init'
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(workingDirectory)'
+              backendServiceArm: '$(azureServiceConnection)'
+              backendAzureRmResourceGroupName: '$(backendResourceGroup)'
+              backendAzureRmStorageAccountName: '$(backendStorageAccount)'
+              backendAzureRmContainerName: '$(backendContainerName)'
+              backendAzureRmKey: '$(backendKey)'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Validate'
+            inputs:
+              provider: 'azurerm'
+              command: 'validate'
+              workingDirectory: '$(workingDirectory)'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Plan'
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(workingDirectory)'
+              environmentServiceNameAzureRM: '$(azureServiceConnection)'
+              backendServiceArm: '$(azureServiceConnection)'
+              backendAzureRmResourceGroupName: '$(backendResourceGroup)'
+              backendAzureRmStorageAccountName: '$(backendStorageAccount)'
+              backendAzureRmContainerName: '$(backendContainerName)'
+              backendAzureRmKey: '$(backendKey)'
+              vars: |
+                environment=$(environment)
+
+  - stage: Terraform_Apply
+    displayName: "Terraform Apply"
+    dependsOn: Terraform_Validate_Plan
+    condition: succeeded()
+    jobs:
+      - job: TerraformApply
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+
+          - task: UseTerraform@1
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: '$(terraformVersion)'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Apply'
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(workingDirectory)'
+              environmentServiceNameAzureRM: '$(azureServiceConnection)'
+              backendServiceArm: '$(azureServiceConnection)'
+              backendAzureRmResourceGroupName: '$(backendResourceGroup)'
+              backendAzureRmStorageAccountName: '$(backendStorageAccount)'
+              backendAzureRmContainerName: '$(backendContainerName)'
+              backendAzureRmKey: '$(backendKey)'
+              vars: |
+                environment=$(environment)
+              autoApprove: true
