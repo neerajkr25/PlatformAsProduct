@@ -1,6 +1,8 @@
 Prerequesites :- 
-1- storage Account for backend
-PAT git - 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
+1- storage Account for terraform state file as backend
+2- Azure DevOps Subscription
+3- Setup Service Connection between azure and Azure DevOps
+4- Runner Setup (agents to run the job)
 
 ===================================================================================
 
