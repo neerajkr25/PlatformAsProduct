@@ -2,21 +2,36 @@ trigger:
   branches:
     include:
       - dev
+
 pool:
   name: 'Default'
 
+variables:
+- group: dev-secrets  # Make sure this is linked in your pipeline
+
 steps:
 - checkout: self
+
 - script: |
-    echo "🔐 Logging in to Azure CLI..."
-    az login --service-principal -u 137c40cd-769a-4a05-a9a5-0e704688e080 -p 8HU8Q~jdiNdeh3SgtElTG22No4ix09gimnrPzaPd --tenant e6661ddb-733b-4277-9ae4-d76861358b5c
-  displayName: 'Azure CLI Login and Terraform Init'
+    echo "✅ Azure SP environment variables will be used for Terraform"
+  displayName: 'Prepare SP Auth Environment'
+
 - script: |
     cd iac/azure/env/dev
     terraform init
+  env:
+    ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+    ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+    ARM_TENANT_ID: $(AZURE_TENANT_ID)
+    ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
   displayName: 'Terraform Init'
 
 - script: |
     cd iac/azure/env/dev
     terraform plan
+  env:
+    ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+    ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+    ARM_TENANT_ID: $(AZURE_TENANT_ID)
+    ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
   displayName: 'Terraform Plan'
