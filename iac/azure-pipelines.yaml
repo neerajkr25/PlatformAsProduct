@@ -12,7 +12,7 @@ variables:
 ##### Plan Init Validate and Plan ########
 stages:
 - stage: terraformPlan
-  displayName: "plan terraform Init, validate and plan"
+  displayName: "Init, validate and plan"
   jobs:
   - job: plan
     timeoutInMinutes: 15
