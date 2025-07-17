@@ -9,10 +9,7 @@ steps:
 - checkout: self
 - script: |
     echo "🔐 Logging in to Azure CLI..."
-    az login --service-principal \
-      -u $AZURE_CLIENT_ID \
-      -p $AZURE_CLIENT_SECRET \
-      --tenant $AZURE_TENANT_ID
+    az login --service-principal -u 137c40cd-769a-4a05-a9a5-0e704688e080 -p 8HU8Q~jdiNdeh3SgtElTG22No4ix09gimnrPzaPd --tenant e6661ddb-733b-4277-9ae4-d76861358b5c
   displayName: 'Azure CLI Login and Terraform Init'
 - script: |
     cd iac/azure/env/dev
