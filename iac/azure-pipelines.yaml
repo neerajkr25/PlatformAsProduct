@@ -65,6 +65,13 @@ stages:
     steps:
     - checkout: self
     - script: |
+            cd iac/azure/env/dev
+            terraform init
+      displayName: 'Terraform Init'
+    - script: |
+        cd iac/azure/env/dev
+        terraform plan
+    - script: |
         cd iac/azure/env/dev
         terraform apply -auto-approve
       displayName: 'Terraform Apply'
