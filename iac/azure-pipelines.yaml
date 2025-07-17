@@ -57,10 +57,7 @@ stages:
   displayName: "Terraform apply"
   dependsOn: terraformPlan
   condition: succeeded()
-  approval:
-    approvals:
-      - approvers:
-          - ddtech2k24@gmail.com
+  environment: dev
   jobs:
   - job: apply
     timeoutInMinutes: 15
