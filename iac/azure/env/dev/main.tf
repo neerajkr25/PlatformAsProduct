@@ -15,7 +15,7 @@ module "dev-aks" {
   location            = var.location
   dns_prefix          = "devaks"
   node_count          = 2
-  vm_size             = "Standard_DS2_v2"
+  vm_size             = "standard_a2_v2"
   vnet_subnet_id = module.vnet.dev_app_subnet_id
   tags = {
     env     = "dev"
