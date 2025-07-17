@@ -7,31 +7,73 @@ pool:
   name: 'Default'
 
 variables:
-- group: dev-secrets  # Make sure this is linked in your pipeline
+- group: dev-secrets  # Make sure this is linked in your pipeline and mention the same name you have specifed in the variable group
 
-steps:
-- checkout: self
+##### Plan Init Validate and Plan ########
+stages:
+- stage: terraformPlan
+  displayName: "plan terraform Init, validate and plan"
+  jobs:
+  - job: plan
+    timeoutInMinutes: 15
+  steps:
+  - checkout: self
+  - script: |
+      echo "Azure SP environment variables will be used for Terraform"
+    displayName: 'Prepare SP Auth Environment'
+  - script: |
+      cd iac/azure/env/dev
+      terraform init
+    env:
+      ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+      ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+      ARM_TENANT_ID: $(AZURE_TENANT_ID)
+      ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+    displayName: 'Terraform Init'
 
-- script: |
-    echo "✅ Azure SP environment variables will be used for Terraform"
-  displayName: 'Prepare SP Auth Environment'
+  - script: |
+      cd iac/azure/env/dev
+      terraform validate
+    env:
+      ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+      ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+      ARM_TENANT_ID: $(AZURE_TENANT_ID)
+      ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+    displayName: 'Terraform Validate'
 
-- script: |
-    cd iac/azure/env/dev
-    terraform init
-  env:
-    ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
-    ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
-    ARM_TENANT_ID: $(AZURE_TENANT_ID)
-    ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-  displayName: 'Terraform Init'
 
-- script: |
-    cd iac/azure/env/dev
-    terraform plan
-  env:
-    ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
-    ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
-    ARM_TENANT_ID: $(AZURE_TENANT_ID)
-    ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-  displayName: 'Terraform Plan'
+  - script: |
+      cd iac/azure/env/dev
+      terraform plan
+    env:
+      ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+      ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+      ARM_TENANT_ID: $(AZURE_TENANT_ID)
+      ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+    displayName: 'Terraform Plan'
+
+##### plan terraform apply ########
+- stage: TerraformApply
+  displayName: "Terraform apply"
+  dependsOn: terraformPlan
+  condition: succeeded()
+  approval:
+    approvals:
+      - approvers:
+          - ddtech2k24@gmail.com
+  jobs:
+  - job: apply
+    timeoutInMinutes: 15
+    pool:
+      name: 'Default'
+    steps:
+    - checkout: self
+    - script: |
+        cd iac/azure/env/dev
+        terraform apply -auto-approve tfplan
+      displayName: 'Terraform Apply'
+      env:
+        ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+        ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+        ARM_TENANT_ID: $(AZURE_TENANT_ID)
+        ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
