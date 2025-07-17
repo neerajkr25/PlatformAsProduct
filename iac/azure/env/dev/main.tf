@@ -19,7 +19,6 @@ module "dev-aks" {
   vnet_subnet_id = module.vnet.dev_app_subnet_id
   service_cidr        = var.service_cidr
   dns_service_ip      = var.dns_service_ip
-  docker_bridge_cidr  = var.docker_bridge_cidr
   tags = {
     env     = "dev"
     project = "platformAsProduct"

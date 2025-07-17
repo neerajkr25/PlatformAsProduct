@@ -57,8 +57,3 @@ variable "dns_service_ip" {
   type    = string
   default = "10.240.0.10"
 }
-
-variable "docker_bridge_cidr" {
-  type    = string
-  default = "172.17.0.1/16"
-}
