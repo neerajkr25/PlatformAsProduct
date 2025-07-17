@@ -8,3 +8,16 @@ variable "resource_group_name" {}
 variable "address_space" {
   type = list(string)
 }
+
+#### k8s networing ##########
+variable "service_cidr" {
+  default = "10.240.0.0/16"
+}
+
+variable "dns_service_ip" {
+  default = "10.240.0.10"
+}
+
+variable "docker_bridge_cidr" {
+  default = "172.17.0.1/16"
+}

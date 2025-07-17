@@ -46,3 +46,19 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+#### change according to your networking #####
+variable "service_cidr" {
+  type    = string
+  default = "10.240.0.0/16"
+}
+
+variable "dns_service_ip" {
+  type    = string
+  default = "10.240.0.10"
+}
+
+variable "docker_bridge_cidr" {
+  type    = string
+  default = "172.17.0.1/16"
+}
