@@ -16,48 +16,47 @@ stages:
   jobs:
   - job: plan
     timeoutInMinutes: 15
-  steps:
-  - checkout: self
-  - script: |
-      echo "Azure SP environment variables will be used for Terraform"
-    displayName: 'Prepare SP Auth Environment'
-  - script: |
-      cd iac/azure/env/dev
-      terraform init
-    env:
-      ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
-      ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
-      ARM_TENANT_ID: $(AZURE_TENANT_ID)
-      ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-    displayName: 'Terraform Init'
+    steps:
+    - checkout: self
+    - script: |
+        echo "Azure SP environment variables will be used for Terraform"
+      displayName: 'Prepare SP Auth Environment'
+    - script: |
+        cd iac/azure/env/dev
+        terraform init
+      env:
+        ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+        ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+        ARM_TENANT_ID: $(AZURE_TENANT_ID)
+        ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+      displayName: 'Terraform Init'
 
-  - script: |
-      cd iac/azure/env/dev
-      terraform validate
-    env:
-      ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
-      ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
-      ARM_TENANT_ID: $(AZURE_TENANT_ID)
-      ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-    displayName: 'Terraform Validate'
+    - script: |
+        cd iac/azure/env/dev
+        terraform validate
+      env:
+        ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+        ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+        ARM_TENANT_ID: $(AZURE_TENANT_ID)
+        ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+      displayName: 'Terraform Validate'
 
 
-  - script: |
-      cd iac/azure/env/dev
-      terraform plan
-    env:
-      ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
-      ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
-      ARM_TENANT_ID: $(AZURE_TENANT_ID)
-      ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-    displayName: 'Terraform Plan'
+    - script: |
+        cd iac/azure/env/dev
+        terraform plan
+      env:
+        ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+        ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+        ARM_TENANT_ID: $(AZURE_TENANT_ID)
+        ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+      displayName: 'Terraform Plan'
 
 ##### plan terraform apply ########
 - stage: TerraformApply
   displayName: "Terraform apply"
   dependsOn: terraformPlan
   condition: succeeded()
-  environment: dev
   jobs:
   - job: apply
     timeoutInMinutes: 15
