@@ -1,8 +1,3 @@
-provider "azurerm" {
-  features {}
-  subscription_id = var.subscription_id
-}
-
 terraform {
   required_providers {
     azurerm = {
@@ -10,4 +5,8 @@ terraform {
         version = "1.6.0"
     }
   }
+}
+
+provider "azurerm" {
+  features {}
 }
