@@ -89,3 +89,20 @@ stages:
     #     ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
     #     ARM_TENANT_ID: $(AZURE_TENANT_ID)
     #     ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID) #
+
+
+##### Deployment in AKS ########
+- stage: AksDeployment
+  displayName: AppDeployment
+  dependsOn: TerraformApply
+  condition: succeeded()
+  jobs:
+  - job: Deployment
+    timeoutInMinutes: 15
+    steps:
+    - checkout: self
+    - script: |
+        cd platform/manifests
+        kubectl apply -f deployment.yaml
+        kubectl apply -f service.yaml
+      displayName: 'deploy yaml menifests'
