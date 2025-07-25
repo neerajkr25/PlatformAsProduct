@@ -14,6 +14,6 @@ Once Agent is ready you can start building the IaC pipeline. Here we are using t
 3- Create Initial setup like Vnet, 2 subnets and than launch K8s cluster
 4- Create NodeJs application and than create Dockerfile and build image
 5- Push docker container image to dockerhub docker image registry
-6-
+6
 
 
