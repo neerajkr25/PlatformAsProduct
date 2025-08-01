@@ -21,6 +21,6 @@
 #   dns_service_ip      = var.dns_service_ip
 #   tags = {
 #     env     = "dev"
-#     project = "platformAsProduct"
+#     project = "platformAsProductt"
 #   }
 # }
