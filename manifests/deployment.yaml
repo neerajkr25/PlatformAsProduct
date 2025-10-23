@@ -1,0 +1,68 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: erdc-poc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: erdc-poc
+  namespace: erdc-poc
+  labels:
+    app: erdc-poc
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: erdc-poc
+  template:
+    metadata:
+      labels:
+        app: erdc-poc
+    spec:
+      # imagePullSecrets:           # uncomment if using an image pull secret
+      # - name: acr-secret
+      containers:
+      - name: erdc-poc
+        image: erdcuaenpocimages.azurecr.io/node-k8s-demo:v2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+        readinessProbe:
+          tcpSocket:
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 3
+        livenessProbe:
+          tcpSocket:
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: erdc-poc-svc
+  namespace: erdc-poc
+  labels:
+    app: erdc-poc
+spec:
+  selector:
+    app: erdc-poc
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP

@@ -1,0 +1,38 @@
+# Gateway in the ingress namespace that has the external LB
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: erdc-poc-http-gateway
+  namespace: aks-istio-ingress
+spec:
+  selector:
+    app: aks-istio-ingressgateway-external
+    istio: aks-istio-ingressgateway-external
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "poc.powerdreams.app"   # replace with your domain (erdc.example.com) or nip.io host
+---
+# VirtualService in the application namespace
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: erdc-poc-http-vs
+  namespace: erdc-poc
+spec:
+  hosts:
+  - "poc.powerdreams.app"     # same host as above
+  gateways:
+  - aks-istio-ingress/erdc-poc-http-gateway
+  http:
+  - match:
+    - uri:
+        prefix: "/"
+    route:
+    - destination:
+        host: erdc-poc-svc.erdc-poc.svc.cluster.local
+        port:
+          number: 80
