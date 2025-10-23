@@ -14,7 +14,7 @@ spec:
       name: http
       protocol: HTTP
     hosts:
-    - "poc.powerdreams.app"   # replace with your domain (erdc.example.com) or nip.io host
+    - "poc.powerdreams.app"
 ---
 # VirtualService in the application namespace
 apiVersion: networking.istio.io/v1alpha3
@@ -24,7 +24,7 @@ metadata:
   namespace: erdc-poc
 spec:
   hosts:
-  - "poc.powerdreams.app"     # same host as above
+  - "poc.powerdreams.app"
   gateways:
   - aks-istio-ingress/erdc-poc-http-gateway
   http:
