@@ -1,0 +1,17 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: erdc-poc-internal-gateway
+  namespace: aks-istio-ingress
+spec:
+  selector:
+    app: aks-istio-ingressgateway-internal
+    istio: aks-istio-ingressgateway-internal
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "poc.powerdreams.app"
+    - "*"

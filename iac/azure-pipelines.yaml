@@ -1,0 +1,117 @@
+trigger:
+  branches:
+    include:
+    - dev
+    - main
+  paths:
+    include:
+     - erdc-poc/iac/**
+
+pr:
+  branches:
+    include:
+    - dev
+    - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - name: storageAccountName
+    value: 'tiitfstatestorage'
+  - name: containerName
+    value: 'sandbox-tf'
+  - name: resourceGroupName
+    value: 'rg-uaen-poc'
+  - name: serviceConnection
+    value: 'sandbox-ado-service-connection'
+  - name: workingDirectory
+    value: 'erdc-poc/iac/azure/env/sandbox'
+  - name: stateKey
+    value: 'sb-staging-terraform.tfstate'
+  - name: subscriptionId
+    value: 'c6abd210-bfee-4c3f-bdd8-38ba2e61daf5'
+  - name: tenantId
+    value: 'f0869253-be00-4a37-9c77-37742cb15c38'
+
+jobs:
+- job: TerraformPlan
+  displayName: 'Terraform Plan'
+  condition: |
+    or(
+      and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'), eq(variables['System.PullRequest.TargetBranch'], 'refs/heads/dev')),
+      and(succeeded(), eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
+    )
+  steps:
+  - task: TerraformInstaller@1
+    displayName: 'Install Terraform'
+    inputs:
+      terraformVersion: 'latest'
+
+  - task: AzureCLI@2
+    displayName: 'Terraform $(terraformCommand)'
+    inputs:
+      azureSubscription: '$(serviceConnection)'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/$(workingDirectory)'
+      inlineScript: |
+        set -e
+        az account set --subscription '$(subscriptionId)'
+        echo "Terraform Init for module in $(workingDirectory)..."
+        terraform init \
+          -backend-config="storage_account_name=$(storageAccountName)" \
+          -backend-config="container_name=$(containerName)" \
+          -backend-config="key=$(stateKey)" \
+          -backend-config="resource_group_name=$(resourceGroupName)"
+        echo "Terraform Validate..."
+        terraform validate
+        echo "Terraform Plan for module in $(workingDirectory)..."
+        terraform plan -out=tfplan.plan
+        echo "Successfully planned module in $(workingDirectory)"
+
+    env:
+      ARM_SUBSCRIPTION_ID: $(subscriptionId)
+      ARM_TENANT_ID: $(tenantId)
+      ARM_USE_AZUREAD: 'false'
+
+- job: TerraformApply
+  displayName: 'Terraform Apply'
+  condition: |
+    or(
+      and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'), eq(variables['System.PullRequest.TargetBranch'], 'refs/heads/main')),
+      and(succeeded(), eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    )
+  steps:
+  - task: TerraformInstaller@1
+    displayName: 'Install Terraform'
+    inputs:
+      terraformVersion: 'latest'
+
+  - task: AzureCLI@2
+    displayName: 'Terraform $(terraformCommand)'
+    inputs:
+      azureSubscription: '$(serviceConnection)'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/$(workingDirectory)'
+      inlineScript: |
+        set -e
+        az account set --subscription '$(subscriptionId)'
+        echo "Terraform Init for module in $(workingDirectory)..."
+        terraform init \
+          -backend-config="storage_account_name=$(storageAccountName)" \
+          -backend-config="container_name=$(containerName)" \
+          -backend-config="key=$(stateKey)" \
+          -backend-config="resource_group_name=$(resourceGroupName)"
+        echo "Terraform Validate..."
+        terraform validate
+        echo "Terraform Plan for module in $(workingDirectory)..."
+        terraform plan -out=tfplan.plan
+        echo "Successfully planned module in $(workingDirectory)"
+        terraform apply -auto-approve tfplan.plan
+    env:
+      ARM_SUBSCRIPTION_ID: $(subscriptionId)
+      ARM_TENANT_ID: $(tenantId)
+      ARM_USE_AZUREAD: 'false'
+      ###

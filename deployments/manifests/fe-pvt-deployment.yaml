@@ -1,0 +1,66 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: frontend-private
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: erdc-poc-be
+  namespace: frontend-private
+  labels:
+    app: erdc-poc-be
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: erdc-poc-be
+  template:
+    metadata:
+      labels:
+        app: erdc-poc-be
+    spec:
+      containers:
+      - name: erdc-poc-be
+        image: acrtipstg001.azurecr.io/erdc-fe-pvt:v1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3001
+        readinessProbe:
+          tcpSocket:
+            port: 3001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 3
+        livenessProbe:
+          tcpSocket:
+            port: 3001
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: erdc-poc-svc-be
+  namespace: frontend-private
+  labels:
+    app: erdc-poc-be
+spec:
+  selector:
+    app: erdc-poc-be
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3001
+  type: ClusterIP

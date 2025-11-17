@@ -1,0 +1,66 @@
+trigger:
+  branches:
+    include:
+      - dev
+  paths:
+    include:
+      - erdc-poc/deployments/**
+
+variables:
+  azureServiceConnection: 'sandbox-ado-service-connection'
+  aksResourceGroup: 'rg-uaen-temp-stg-tip'
+  aksClusterName: 'aks-uaen-stg-temp-tip'
+  kubectlVersion: '1.28.0'
+  rolloutTimeoutSeconds: '120s'
+  deploymentsToRollout: |
+    frontend-public:erdc-poc
+    frontend-private:erdc-poc-be
+
+stages:
+  - stage: RolloutRestart
+    displayName: Deploy and Restart
+    jobs:
+      - job: Rollout
+        displayName: Deployments
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: AzureCLI@2
+            displayName: 'Restart specific deployments in AKS'
+            inputs:
+              azureSubscription: '$(azureServiceConnection)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                set -euo pipefail
+
+                echo "Installing kubectl v$(kubectlVersion)..."
+                curl -sSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/v$(kubectlVersion)/bin/linux/amd64/kubectl"
+                chmod +x /usr/local/bin/kubectl
+
+                echo "Fetching AKS credentials..."
+                az aks get-credentials \
+                  --resource-group "$(aksResourceGroup)" \
+                  --name "$(aksClusterName)" \
+                  --overwrite-existing
+
+                echo "Starting rollouts..."
+                while IFS=':' read -r namespace deployment || [ -n "$namespace" ]; do
+                  # skip empty lines
+                  [ -z "$namespace" ] && continue
+
+                  echo "--------------------------------------------------"
+                  echo "Namespace: $namespace | Deployment: $deployment"
+                  
+                  echo "Restarting deployment..."
+                  kubectl rollout restart deployment/"$deployment" -n "$namespace"
+
+                  echo "Waiting for rollout to complete (timeout: $(rolloutTimeoutSeconds))..."
+                  if ! kubectl rollout status deployment/"$deployment" -n "$namespace" --timeout=$(rolloutTimeoutSeconds); then
+                    echo "Rollout failed for $deployment in $namespace. Rolling back..."
+                    kubectl rollout undo deployment/"$deployment" -n "$namespace" || true
+                    exit 1
+                  fi
+
+                  echo "Rollout successful for $deployment in $namespace"
+                done <<< "$(deploymentsToRollout)"

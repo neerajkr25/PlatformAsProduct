@@ -1,0 +1,30 @@
+trigger:
+  branches:
+    include:
+      - dev
+  paths:
+    include:
+      - erdc-poc/apps/app-fe-pub/** 
+
+variables:
+  ACR_NAME: erdcstgimageregistry
+  IMAGE_NAME: erdc-fe-pub
+  TAG: latest
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - task: AzureCLI@2
+    displayName: 'Build and push image to ACR'
+    inputs:
+      azureSubscription: 'sandbox-ado-service-connection'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        echo "Building and pushing image to ACR..."
+        cd erdc-poc/apps/app-fe-pub
+        az acr build \
+          --registry $ACR_NAME \
+          --image $IMAGE_NAME:$TAG \
+          .
