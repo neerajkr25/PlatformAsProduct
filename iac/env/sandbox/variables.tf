@@ -1,5 +1,5 @@
 variable "subscription_id" {
-  default = "29aa10e8-4628-4fa5-993c-3f810af1a699"
+  default = ""
 }
 
 variable "vnet_name" {}

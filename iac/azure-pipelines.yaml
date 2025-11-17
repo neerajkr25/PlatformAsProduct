@@ -30,9 +30,9 @@ variables:
   - name: stateKey
     value: 'sb-staging-terraform.tfstate'
   - name: subscriptionId
-    value: 'c6abd210-bfee-4c3f-bdd8-38ba2e61daf5'
+    value: ''
   - name: tenantId
-    value: 'f0869253-be00-4a37-9c77-37742cb15c38'
+    value: ''
 
 jobs:
 - job: TerraformPlan
