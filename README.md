@@ -1,11 +1,6 @@
-![EDRC R&D Tex Project - Cloud only HLD.jpg](/.attachments/EDRC%20R&D%20Tex%20Project%20-%20Cloud%20only%20HLD-a32b27e4-b57e-4499-89c9-f44b00b5fbee.jpg)
-
-#![Screenshot 2025-11-12 163317.png](/.attachments/Screenshot%202025-11-12%20163317-b319e2dd-d865-4c23-9914-c5c8cc9cd502.png)
-
-
 # PlatformAsProduct
 
-**Author:** NeerajKumar(Neeraj.kumar@tii.ae) 
+**Author:** NeerajKumar(NeerajKr25) 
 **Purpose:** This repo will be creating below resources.
 **1- /iac/ :-** Vnet, Private AKS, Public AppGateway, Bastion Host, JumpBox VM, Postgress Flexible server, 2 VM, Key Vault. 
 **2- **/deployment/**** :- it contains all the `yaml manifests1` you can deploy application, it also deploy the Istio Ingress gateway with private IP for internal routing. later connect it with AppGateway. 
