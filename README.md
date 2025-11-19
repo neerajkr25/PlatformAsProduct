@@ -3,7 +3,11 @@
 **Author:** NeerajKumar(NeerajKr25) 
 **Purpose:** This repo will be creating below resources.
 **1- /iac/ :-** Vnet, Private AKS, Public AppGateway, Bastion Host, JumpBox VM, Postgress Flexible server, 2 VM, Key Vault. 
+
+
 **2- **/deployment/**** :- it contains all the `yaml manifests1` you can deploy application, it also deploy the Istio Ingress gateway with private IP for internal routing. later connect it with AppGateway. 
+
+
 **3- **/apps/**** :- We can have application code and create Docker file to create ACR image.     
 This README gives clean, actionable instructions to bootstrap, develop, and operate this repo.
 
