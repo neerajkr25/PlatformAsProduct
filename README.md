@@ -1,7 +1,15 @@
+![EDRC R&D Tex Project - Cloud only HLD.jpg](/.attachments/EDRC%20R&D%20Tex%20Project%20-%20Cloud%20only%20HLD-a32b27e4-b57e-4499-89c9-f44b00b5fbee.jpg)
+
+#![Screenshot 2025-11-12 163317.png](/.attachments/Screenshot%202025-11-12%20163317-b319e2dd-d865-4c23-9914-c5c8cc9cd502.png)
+
+
 # PlatformAsProduct
 
-**Author:** neerajkr25  
-**Purpose:** IaC + CI/CD + app deployment repository for deploying a platform (DNS → App Gateway → Istio → apps).  
+**Author:** NeerajKumar(Neeraj.kumar@tii.ae) 
+**Purpose:** This repo will be creating below resources.
+**1- /iac/ :-** Vnet, Private AKS, Public AppGateway, Bastion Host, JumpBox VM, Postgress Flexible server, 2 VM, Key Vault. 
+**2- **/deployment/**** :- it contains all the `yaml manifests1` you can deploy application, it also deploy the Istio Ingress gateway with private IP for internal routing. later connect it with AppGateway. 
+**3- **/apps/**** :- We can have application code and create Docker file to create ACR image.     
 This README gives clean, actionable instructions to bootstrap, develop, and operate this repo.
 
 ---
@@ -35,6 +43,7 @@ azure-pipeline.yaml (expected at repo root for Azure DevOps CI/CD)
 ---
 
 ## Prerequisites
+- A resource group and Storage account to store the `tfstate file`. 
 - Azure subscription (owner/contributor access to create resources)  
 - Azure DevOps organization (or CI provider of your choice)  
 - Service principal or Managed Identity and a service connection from Azure DevOps → Azure  
@@ -50,7 +59,7 @@ azure-pipeline.yaml (expected at repo root for Azure DevOps CI/CD)
 
 ### 1. Clone repo
 ```bash
-git clone https://github.com/neerajkr25/PlatformAsProduct.git
+git clone https://<github>PlatformAsProduct.git
 cd PlatformAsProduct
 ````
 
@@ -70,13 +79,14 @@ Create/update `.gitignore` at repo root:
 Create a resource group and storage account manually or with a small terraform script. Example:
 
 ```bash
-az group create -n myInfraRG -l eastus
+az group create -n myInfraRG -l uaenorth
 az storage account create -n mystatestorage123 -g myInfraRG --sku Standard_LRS
 az storage container create -n tfstate --account-name mystatestorage123
 ```
 
 Then use a `backend "azurerm"` block in your `terrafrom` configuration (see `iac/`).
 
+### 4. Change all the variables in `variables.tf file and terraform.auto.tfvars` and make necessary changes in environment file `\iac\env\sandbox\main.tf` and  `\iac\env\sandbox\providers.tf` according to the environment. 
 ---
 
 ## Terraform (iac) — usage & best practice
@@ -87,9 +97,8 @@ Then use a `backend "azurerm"` block in your `terrafrom` configuration (see `iac
 
 **Notes:**
 
-* create resource Group and storage account manually to store TF state file. 
 * Keep provider versions pinned in `.terraform.lock.hcl`.
-* Do **NOT** commit `.terraform/` or provider binaries. Terraform providers will be downloaded locally by `terraform init`.
+* Do **NOT** commit `.terraform/` or provider binaries, If you're running terraform commands from local machine. Terraform providers will be downloaded locally by `terraform init`.
 cd iac/env/sandbox
 # create or export backend variables needed (ARM_SUBSCRIPTION_ID, etc.)
 terraform init
@@ -97,7 +106,6 @@ terraform validate
 terraform plan -var-file="sandbox.tfvars"
 # when ready
 terraform apply -var-file="sandbox.tfvars"
-'''
 ---
 
 ## Build & push Docker images
@@ -106,14 +114,15 @@ terraform apply -var-file="sandbox.tfvars"
 
 ```bash
 cd apps/my-app
-docker build -t mydockerhubuser/platform-product:latest .
+docker build -t <acr_repo> .
+docker tag
 ```
 
 2. Push to registry
 
 ```bash
 docker login
-docker push mydockerhubuser/platform-product:latest
+docker push <acr_repo>:latest
 ```
 
 Use a private container registry (ACR) for production. In Azure, `az acr login --name <acrName>`.
@@ -217,7 +226,9 @@ git reset --hard origin/main
 ```
 
 ---
-
+### C. Connection reset while applying terraform apply
+* You will see the connection reset while applying `terraform apply`.
+ To resolve just re-run the terraform init/plan/apply 
 ## Security & secrets
 
 * Never commit `.tfvars` with secrets, nor Kubernetes secret manifests with plain keys.
@@ -243,7 +254,7 @@ terraform init
 terraform plan -out plan.out
 terraform apply plan.out
 
-# docker
+# docker (change the ACR repo and apply the tags)
 cd apps/my-app
 docker build -t mydockerhubuser/myapp:tag .
 docker push mydockerhubuser/myapp:tag
@@ -260,7 +271,7 @@ git filter-repo --path .terraform --invert-paths
 
 ## References
 
-* This repository: `https://github.com/neerajkr25/PlatformAsProduct`. ([GitHub][5])
+* This repository: `https://github.com/<user>/PlatformAsProduct`. ([GitHub][5])
 * Git LFS docs — managing large files and Git LFS setup. ([GitHub Docs][6])
 * `git-filter-repo` (recommended) for rewriting history. ([GitHub][3])
 * Azure Traffic Manager docs (DNS-based global traffic routing). ([Microsoft Learn][1])
@@ -268,34 +279,8 @@ git filter-repo --path .terraform --invert-paths
 
 ---
 
-## Final blunt note
-
+## Final notes
 * **Do not commit .terraform, provider binaries or .tfstate files** — they do not belong in Git.
-* If your repo has already stored large binaries, **rewrite history** (git-filter-repo) and force-push a cleaned repo — this is the correct fix.
-* For multi-region failover, keep Traffic Manager pointing at **public** App Gateway FQDNs and handle Cloudflare proxy settings carefully.
+* All the pipeline code is available on each directory. You can simply use the predefined pipelines to do all the automation jobs
 
 ---
-
-Other CI-CD is also included:
-
-* create the actual `azure-pipeline.yaml` (full CI/CD pipeline with tasks for terraform, docker, and kubectl), or
-* generate a sample `.gitignore` and `.tfvars.example`, or
-* produce an automated git history-clean script tailored to this repo path that removes the `.terraform/providers/.../terraform-provider-azurerm_*.exe` binary specifically.
-
-Which one do you want me to produce next?
-
-```
-
----
-
-If you want that `azure-pipeline.yaml`, `.gitignore`, or the **exact git-filter-repo command** targeted to the path that caused the GitHub rejection (I already saw the file path in your push error), tell me **which** and I’ll generate the exact file/command now.
-::contentReference[oaicite:10]{index=10}
-```
-
-[1]: https://learn.microsoft.com/en-us/azure/traffic-manager/?utm_source=chatgpt.com "Traffic Manager documentation"
-[2]: https://docs.github.com/repositories/working-with-files/managing-large-files/about-git-large-file-storage?utm_source=chatgpt.com "About Git Large File Storage"
-[3]: https://github.com/newren/git-filter-repo?utm_source=chatgpt.com "newren/git-filter-repo: Quickly rewrite git repository history ..."
-[4]: https://git-lfs.com/?utm_source=chatgpt.com "Git LFS"
-[5]: https://github.com/neerajkr25/PlatformAsProduct "GitHub - neerajkr25/PlatformAsProduct"
-[6]: https://docs.github.com/en/repositories/working-with-files/managing-large-files/configuring-git-large-file-storage?utm_source=chatgpt.com "Configuring Git Large File Storage"
-[7]: https://learn.microsoft.com/en-us/azure/application-gateway/?utm_source=chatgpt.com "Azure Application Gateway documentation"
