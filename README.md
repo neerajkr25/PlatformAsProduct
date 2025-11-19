@@ -60,7 +60,7 @@ azure-pipeline.yaml (expected at repo root for Azure DevOps CI/CD)
 
 ### 1. Clone repo
 ```bash
-git clone https://<github>PlatformAsProduct.git
+git clone https://github.com/neerajkr25/PlatformAsProduct.git
 cd PlatformAsProduct
 ````
 
